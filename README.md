@@ -82,3 +82,8 @@ Today I learned. 배운 것을 기록하는 저장소
 - AWS health check
 - NoSQL - Cassandra
 - JWT, JWS, JWE, JWK
+
+## 3주차
+- Algorithm - dynamic programming
+- Docker practice
+- AWS credential
