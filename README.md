@@ -83,7 +83,10 @@ Today I learned. 배운 것을 기록하는 저장소
 - NoSQL - Cassandra
 - JWT, JWS, JWE, JWK
 
-## 3주차
+### 3주차
 - Algorithm - dynamic programming
 - Docker practice
-- AWS credential
+- AWS IAM practice
+
+### 4주차
+- AWS DynamoDB practice
