@@ -85,8 +85,11 @@ Today I learned. 배운 것을 기록하는 저장소
 
 ### 3주차
 - Algorithm - dynamic programming
-- Docker practice
+- Docker practice (basic grammar, volume, EC2, ECS)
 - AWS IAM practice
 
 ### 4주차
+- Algorithm - Prefix Sum
 - AWS DynamoDB practice
+- AWS API gateway practice
+- Docker practice 2 (multi-container, Load Balancer, MongoDB Atlas, API gateway)
