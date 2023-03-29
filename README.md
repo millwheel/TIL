@@ -92,4 +92,4 @@ Today I learned. 배운 것을 기록하는 저장소
 - Algorithm - Prefix Sum
 - AWS DynamoDB practice
 - AWS API gateway practice
-- Docker practice 2 (multi-container, Load Balancer, MongoDB Atlas, API gateway)
+- Docker practice 2 (multi-container, MongoDB Atlas, Load Balancer)
