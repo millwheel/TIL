@@ -92,4 +92,10 @@ Today I learned. 배운 것을 기록하는 저장소
 - Algorithm - Prefix Sum
 - AWS DynamoDB practice
 - AWS API gateway practice
+- API gateway and ELB connected
 - Docker practice 2 (multi-container, MongoDB Atlas, Load Balancer)
+
+## 4월
+### 1주차
+- Algorithm - 부대복귀 BFS
+- Algorithm - 광고삽입 Time transformation and prefix sum
