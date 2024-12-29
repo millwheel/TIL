@@ -299,3 +299,108 @@ PreAuthorize 에서 Role 때문에 막혔으면 애초에 ResponseStream을 클�
 의심되는 포인트
 - spring security 와 spring webflux간의 충돌
 - spring security 자체적으로 설정이 잘못됨
+
+# Spring Security의 문제 찾기
+
+spring security 설정에서부터 문제가 있지 않을까 의심함.  
+일단 비동기 요청 컨트롤러는 오로지 동기적으로만 동작하도록 변경함.  
+
+```kotlin
+    @PreAuthorize("hasAnyRole('ADMIN', 'MEMBER')")
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    fun createChat(
+        @AuthenticationPrincipal principal: CustomPrincipal,
+        @RequestParam model: String = "gpt-4o-mini",
+        @RequestParam isStreaming: Boolean = false,
+        @RequestBody chatRequest: ChatRequest
+    ): String {
+        val userId = principal.userId
+        val question = chatRequest.question
+        val answer = chatService.createAnswer(userId, model, isStreaming, question)
+        handleChatCompletion(userId, question, answer)
+        return answer
+    }
+```
+
+## Spring Security 에서 exception handling 설정 제거
+
+SecurityConfig 에서 exception handling 설정 제거함.  
+원래는 이렇게만 설정해도 로그인은 정상동작하고, 
+그 토큰으로 API에 접근할 수 있어야 함
+
+```kotlin
+    @Bean
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+        http
+            .authorizeHttpRequests { authorization -> authorization
+                .requestMatchers( "/actuator/**", "/error/**", "/auth/**").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/docs/**", "/swagger-resources/**").permitAll()
+                .anyRequest().authenticated()
+            }
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .csrf{
+                it.disable()
+            }
+        return http.build()
+    }
+```
+
+## 관리자 로그인
+
+관리자 계정으로 로그인.
+
+### 로그인 정상 동작
+
+토큰은 정상즉으로 돌아옴
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMWVjYWU3Yy03NzZmLTQ0NTEtOTQ5My03MGZlOTk3ZTZkYjQiLCJlbWFpbCI6ImFkbWluMTIzQGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTczNTQ1ODI1NSwiZXhwIjoxNzM1NTQ0NjU1fQ.r-C3jFZKJ6uuZanUjMiRMk-M8fCqoWKxdyxGQyFSDt4
+```
+
+### API 동작도 정상 동작
+
+chat 전체 조회에서 정상 응답 돌아옴
+
+```json
+{
+  "data": [
+    {
+      "userId": "31ecae7c-776f-4451-9493-70fe997e6db4",
+      "threadId": "67d7e5be-7d59-4b76-9153-3df4cf94f08d",
+      "chats": [
+        {
+          "chatId": "596a389f-6bc7-449c-856f-c8e7aee6e59e",
+          "question": "2+1은 뭐야?",
+          "answer": "2 + 1은 3입니다.",
+          "createdAt": "2024-12-29T07:41:04.159402Z"
+        }
+      ],
+      "createdAt": "2024-12-29T07:41:04.134434Z"
+    }
+  ]
+}
+```
+
+## 멤버 계정으로 로그인
+
+### 로그인 정상
+
+```
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI5MTcxNDUxOS0wMzA1LTQwMjUtODY4Yy0yMjExZDAyZGM2NzEiLCJlbWFpbCI6InNpb253ZXI1QGdtYWlsLmNvbSIsInJvbGUiOiJNRU1CRVIiLCJpYXQiOjE3MzU0NTg0OTMsImV4cCI6MTczNTU0NDg5M30.xz81JXi7WBPTj9DW29jc3arxh8f4darCxwRKii0c8IQ
+```
+
+### API 동작
+
+멤버는 chat 전체 조회 권한이 없음  
+403 에러가 발생해야하는데, 500 에러가 돌아옴
+이건 문제임
+
+```json
+{
+    "timestamp": "2024-12-29T07:52:58.864415200Z",
+    "status": 500,
+    "message": "Access Denied"
+}
+```
+
